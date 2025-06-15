@@ -79,6 +79,45 @@ export const chatInput: ChatInputCommand = async (ctx) => {
   const allowMultiselect = ctx.options.getBoolean('allow_multiselect');
   const duration = ctx.options.getNumber('duration');
 
+  // Check if in guild and get proper permissions
+  if (!ctx.interaction.inGuild()) {
+    await ctx.interaction.reply({
+      content: "U-uh, polls only work in servers, not DMs sorry...",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const botPermissions = ctx.interaction.channel
+    ?.permissionsFor(ctx.interaction.client.user!);
+
+  const requiredPermissions = [
+    PermissionsBitField.Flags.SendMessages,
+    PermissionsBitField.Flags.SendPolls,
+    PermissionsBitField.Flags.UseExternalEmojis
+  ];
+
+  const missingPermissions = requiredPermissions.filter(
+    permission => !botPermissions?.has(permission)
+  );
+
+  if (missingPermissions.length > 0) {
+    const permissionNames = missingPermissions.map(perm => {
+      switch(perm) {
+        case PermissionsBitField.Flags.SendMessages: return 'Send Messages';
+        case PermissionsBitField.Flags.SendPolls: return 'Send Polls';
+        case PermissionsBitField.Flags.UseExternalEmojis: return 'Use External Emojis';
+        default: return 'Unknown';
+      }
+    });
+    
+    await ctx.interaction.reply({
+      content: `U-uh, I'm missing permissions: ${permissionNames.join(', ')}. Could you check my permissions? Sorry for being a mess...`,
+      ephemeral: true
+    });
+    return;
+  }
+
   await ctx.interaction.reply({
     poll: {
       allowMultiselect: !!allowMultiselect,
@@ -100,14 +139,31 @@ export const ai: AiCommand<typeof aiConfig> = async (ctx) => {
       error: 'Poll can only be created in a server',
     };
   }
+  const botPermissions = ctx.message.channel
+    .permissionsFor(ctx.message.client.user!);
 
-  const hasPermission = ctx.message.channel
-    .permissionsFor(ctx.message.client.user!)
-    ?.has(PermissionsBitField.Flags.SendMessages);
+  const requiredPermissions = [
+    PermissionsBitField.Flags.SendMessages,
+    PermissionsBitField.Flags.SendPolls,
+    PermissionsBitField.Flags.UseExternalEmojis
+  ];
 
-  if (!hasPermission) {
+  const missingPermissions = requiredPermissions.filter(
+    permission => !botPermissions?.has(permission)
+  );
+
+  if (missingPermissions.length > 0) {
+    const permissionNames = missingPermissions.map(perm => {
+      switch(perm) {
+        case PermissionsBitField.Flags.SendMessages: return 'Send Messages';
+        case PermissionsBitField.Flags.SendPolls: return 'Send Polls';
+        case PermissionsBitField.Flags.UseExternalEmojis: return 'Use External Emojis';
+        default: return 'Unknown';
+      }
+    });
+    
     return {
-      error: 'Bot does not have the permission to send polls in this channel',
+      error: `Bot missing permissions: ${permissionNames.join(', ')}. Please check bot permissions in this channel.`,
     };
   }
 
