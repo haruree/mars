@@ -1,0 +1,68 @@
+# CommandKit Docs
+
+- [Introduction](https://commandkit.dev/docs/next/guide/getting-started/introduction): A brief intro to CommandKit
+- [Setup CommandKit](https://commandkit.dev/docs/next/guide/getting-started/setup-commandkit): Setup a new CommandKit project manually, or using the create-commandkit CLI
+- [Setup CommandKit manually](https://commandkit.dev/docs/next/guide/getting-started/setup-commandkit-manually): Learn how to install CommandKit.
+- [CommandKit Configuration](https://commandkit.dev/docs/next/guide/getting-started/commandkit-config): Learn how to configure CommandKit CLI for your project with detailed examples and best practices.
+- [Using CommandKit CLI](https://commandkit.dev/docs/next/guide/getting-started/using-commandkit-cli): Learn how to use CommandKit CLI to start, build, and manage your Discord bot application with comprehensive examples and best practices.
+- [onApplicationBootstrap function](https://commandkit.dev/docs/next/guide/getting-started/onApplicationBootstrap-function): The onApplicationBootstrap function is called when the application is ready.
+- [Migrating from CommandKit v0](https://commandkit.dev/docs/next/guide/getting-started/migrating-from-v0): Learn how to migrate your CommandKit version from v0 to v1
+- [ButtonKit](https://commandkit.dev/docs/next/guide/message-components/buttonkit): ButtonKit is an enhanced version of the native Discord.js ButtonBuilder, designed to simplify the process of creating and handling button interactions in your Discord bot.
+- [ModalKit](https://commandkit.dev/docs/next/guide/message-components/modalkit): ModalKit is an enhanced version of the native Discord.js ModalBuilder, designed to simplify the process of creating and handling modal submissions in your Discord bot.
+- [SelectMenuKit](https://commandkit.dev/docs/next/guide/message-components/selectmenukit): SelectMenuKit is a set of enhanced versions of Discord.js select menu builders, designed to simplify the process of creating and handling select menu interactions in your Discord bot.
+- [Using JSX](https://commandkit.dev/docs/next/guide/jsx-components/using-jsx): Use JSX to declare Discord message components
+- [Action Row](https://commandkit.dev/docs/next/guide/jsx-components/components-v1/action-row): Learn how to use the ActionRow component to group interactive components
+- [Button](https://commandkit.dev/docs/next/guide/jsx-components/components-v1/button): Learn how to use the Button component to create interactive buttons
+- [Select Menu](https://commandkit.dev/docs/next/guide/jsx-components/components-v1/select-menu): Learn how to use various Select Menu components to create interactive dropdowns
+- [Modal](https://commandkit.dev/docs/next/guide/jsx-components/components-v1/modal): Learn how to use the Modal component to create interactive forms
+- [Text Display](https://commandkit.dev/docs/next/guide/jsx-components/components-v2/text-display): Display text content in your Discord messages using the TextDisplay component
+- [Container](https://commandkit.dev/docs/next/guide/jsx-components/components-v2/container): Organize and style your message components using the Container component
+- [Media Gallery](https://commandkit.dev/docs/next/guide/jsx-components/components-v2/media-gallery): Display multiple images in a gallery format using the MediaGallery component
+- [Section and Separator](https://commandkit.dev/docs/next/guide/jsx-components/components-v2/section-separator): Organize your content with Sections and Separators
+- [File](https://commandkit.dev/docs/next/guide/jsx-components/components-v2/file): Display file attachments in your messages using the File component
+- [Caching in CommandKit](https://commandkit.dev/docs/next/guide/caching/caching-in-commandkit): Learn how to use caching to improve your bot's performance and reduce API calls.
+- [cacheTag Function](https://commandkit.dev/docs/next/guide/caching/cacheTag-function): Learn how to use cacheTag to manage cache entries with tags for targeted revalidation.
+- [cacheLife Function](https://commandkit.dev/docs/next/guide/caching/cacheLife-function): Learn how to use cacheLife to control how long your cache entries live.
+- [revalidateTag Function](https://commandkit.dev/docs/next/guide/caching/revalidateTag-function): Learn how to use revalidateTag to invalidate cache entries by their tags.
+- [cleanup Function](https://commandkit.dev/docs/next/guide/caching/cleanup-function): Learn how to use the cleanup function to manage stale cache entries and optimize memory usage.
+- [Message Commands](https://commandkit.dev/docs/next/guide/message-commands/message-commands): Learn how to create and manage message commands in your Discord bot using CommandKit.
+- [Custom command prefixes](https://commandkit.dev/docs/next/guide/message-commands/resolve-message-commands-prefix): Learn how to implement and manage custom prefixes for message commands in your Discord bot
+- [CommandKit Plugins](https://commandkit.dev/docs/next/guide/plugins/commandkit-plugins): CommandKit plugins are a powerful way to extend the functionality of your CommandKit application. They allow you to add new features, modify existing ones, and customize the behavior of your application.
+- [Creating a Compiler Plugin](https://commandkit.dev/docs/next/guide/plugins/creating-a-compiler-plugin): This guide will walk you through the process of creating a compiler plugin for CommandKit. Compiler plugins are used at compile time to modify the way CommandKit compiles your application. They are used to add new features or modify existing ones.
+- [Creating a Runtime Plugin](https://commandkit.dev/docs/next/guide/plugins/creating-a-runtime-plugin): Creating a runtime plugin for CommandKit. This is useful if you want to create a custom plugin that modifies the way CommandKit runs your application.
+- [Cache Plugin](https://commandkit.dev/docs/next/guide/plugins/official-plugins/cache): The cache plugin for CommandKit enables caching APIs in your project. It provides a simple and efficient way to cache data, reducing the need for repeated database queries or API calls.
+- [Redis Plugin](https://commandkit.dev/docs/next/guide/plugins/official-plugins/redis): The Redis plugin for CommandKit registers a redis cache provider for CommandKit. It allows you to store cached data in redis.
+- [i18n Plugin](https://commandkit.dev/docs/next/guide/plugins/official-plugins/i18n): The i18n plugin for CommandKit enables internationalization (i18n) for CommandKit using i18next. It allows you to translate your application into different languages.
+- [Legacy Plugin](https://commandkit.dev/docs/next/guide/plugins/official-plugins/legacy): The legacy plugin for CommandKit enables legacy commands and events handler in CommandKit. This is useful if you are migrating from an older version of CommandKit and want to incrementally upgrade your application without making major changes.
+- [DevTools Plugin](https://commandkit.dev/docs/next/guide/plugins/official-plugins/devtools): The DevTools plugin for CommandKit provides a set of tools and utilities to enhance the development experience. It includes features like command inspection, performance monitoring, and debugging tools.
+- [Analytics Plugin](https://commandkit.dev/docs/next/guide/plugins/official-plugins/analytics): The analytics plugin for CommandKit enables analytics in your project. It provides a simple and efficient way to track events and metrics.
+- [AI Plugin](https://commandkit.dev/docs/next/guide/plugins/official-plugins/ai): Learn how to use the AI plugin to power your bot's commands and events.
+- [app.ts](https://commandkit.dev/docs/next/guide/file-system-conventions/app.ts): The app.ts file is the entry point for your application.
+- [+middleware.ts](https://commandkit.dev/docs/next/guide/file-system-conventions/+middleware.ts): The +middleware.ts file is used to define middleware functions for your application.
+- [(category) directory](https://commandkit.dev/docs/next/guide/file-system-conventions/category-directory): The (category) directory is used to group related commands together.
+- [Commands Directory](https://commandkit.dev/docs/next/guide/file-system-conventions/commands-directory): The commands directory is used to define the commands for your application.
+- [Events Directory](https://commandkit.dev/docs/next/guide/file-system-conventions/events-directory): The events directory is used to define the events for your Discord.js application.
+- [Locales directory](https://commandkit.dev/docs/next/guide/file-system-conventions/locales-directory): The locales directory is used to define the locales for your application.
+- [Command File](https://commandkit.dev/docs/next/guide/file-system-conventions/command-file): The command file is used to define the commands for your application.
+- [Sharding your bot](https://commandkit.dev/docs/next/guide/sharding/sharding): Learn how to shard your bot in CommandKit.
+- [Feature Flags](https://commandkit.dev/docs/next/guide/feature-flags/feature-flags): Feature flags are a powerful tool for controlling the visibility of features in your application. They allow you to enable or disable features for specific users or groups, making it easier to test and roll out new functionality.
+- [Custom Providers](https://commandkit.dev/docs/next/guide/feature-flags/custom-providers): Learn how to integrate external feature flag management systems with CommandKit using custom providers.
+- [Analytics in CommandKit](https://commandkit.dev/docs/next/guide/analytics/analytics-in-commandkit): Learn how to use the analytics plugin in CommandKit to track events and metrics.
+- [PostHog Analytics](https://commandkit.dev/docs/next/guide/analytics/posthog): Learn how to set up and use PostHog analytics with CommandKit.
+- [Umami Analytics](https://commandkit.dev/docs/next/guide/analytics/umami): Learn how to set up and use Umami analytics with CommandKit.
+- [Custom Analytics Providers](https://commandkit.dev/docs/next/guide/analytics/custom-providers): Learn how to create custom analytics providers for CommandKit.
+- [i18n Plugin](https://commandkit.dev/docs/next/guide/localization/introduction): The i18n plugin for CommandKit enables internationalization (i18n) for CommandKit using i18next. It allows you to translate your application into different languages.
+- [Commands Localization](https://commandkit.dev/docs/next/guide/localization/commands-localization): Learn how to localize your commands using the i18n plugin in CommandKit.
+- [Events Localization](https://commandkit.dev/docs/next/guide/localization/events-localization): Learn how to localize events using the i18n plugin in CommandKit.
+- [Usage with Legacy Plugin](https://commandkit.dev/docs/next/guide/localization/usage-with-legacy-plugin): Learn how to use the i18n plugin with legacy commands in CommandKit.
+- [DevTools Plugin](https://commandkit.dev/docs/next/guide/devtools/introduction): The DevTools plugin for CommandKit provides a set of tools and utilities to enhance the development experience. It includes features like command inspection, performance monitoring, and debugging tools.
+- [AI System Overview](https://commandkit.dev/docs/next/guide/ai-powered-commands/introduction): Complete overview of CommandKit's AI system architecture and capabilities.
+- [AI Configuration](https://commandkit.dev/docs/next/guide/ai-powered-commands/ai-configuration): Learn how to configure AI models for CommandKit.
+- [Creating AI Commands](https://commandkit.dev/docs/next/guide/ai-powered-commands/creating-ai-commands): Learn how to create commands that can be executed by AI models.
+- [AI Context and Hooks](https://commandkit.dev/docs/next/guide/ai-powered-commands/ai-context-hooks): Learn about AI context, built-in tools, and custom hooks for AI commands.
+- [Advanced AI Configuration](https://commandkit.dev/docs/next/guide/ai-powered-commands/advanced-configuration): Deep dive into advanced AI configuration options and customization.
+- [Custom AI Tools](https://commandkit.dev/docs/next/guide/ai-powered-commands/custom-tools): Learn how to create custom tools for AI models to extend functionality.
+- [AI Best Practices & Examples](https://commandkit.dev/docs/next/guide/ai-powered-commands/best-practices): Best practices and real-world examples for AI-powered Discord bots.
+- [AI Troubleshooting](https://commandkit.dev/docs/next/guide/ai-powered-commands/troubleshooting): Common issues and solutions when working with CommandKit's AI system.
+- [after Function](https://commandkit.dev/docs/next/guide/helper-functions/after): The after function is a utility function that allows you to execute a callback after current command has been executed. This is useful for performing actions that should occur after the command has completed, such as logging or cleanup tasks.
+- [stopEvents Function](https://commandkit.dev/docs/next/guide/helper-functions/stopEvents): The stopEvents function is a utility function that allows you to stop the execution of events chain in CommandKit.
