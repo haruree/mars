@@ -1,6 +1,6 @@
-import type { CommandData, ChatInputCommand } from 'commandkit';
+import type { CommandData, ChatInputCommand, MessageCommand } from 'commandkit';
 import type { AiCommand, AiConfig } from 'commandkit/ai';
-import { ApplicationCommandOptionType, PermissionsBitField, Collection, Message } from 'discord.js';
+import { ApplicationCommandOptionType, PermissionsBitField } from 'discord.js';
 import { z } from 'zod';
 
 export const command: CommandData = {
@@ -50,54 +50,164 @@ export const chatInput: ChatInputCommand = async (ctx) => {
     return;
   }
 
-  await ctx.interaction.deferReply({ ephemeral: true });
-
-  try {
+  await ctx.interaction.deferReply({ ephemeral: true });  try {
     if (!ctx.interaction.channel?.isTextBased()) {
       await ctx.interaction.editReply('This command can only be used in text channels!');
       return;
     }
 
-    // Delete messages in batches (Discord API limit is 100 per request)
     let totalDeleted = 0;
-    let remainingToDelete = amount;
+    let lastMessageId = ctx.interaction.id;
+    const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
 
-    while (remainingToDelete > 0 && totalDeleted < amount) {
-      const batchSize = Math.min(remainingToDelete, 100);
+    // Delete messages in batches
+    while (totalDeleted < amount) {
+      const batchSize = Math.min(amount - totalDeleted, 100);
       
-      const messages = await ctx.interaction.channel.messages.fetch({ 
-        limit: batchSize,
-        before: ctx.interaction.id // Don't delete the command interaction
-      });
+      try {
+        const messages = await ctx.interaction.channel.messages.fetch({ 
+          limit: batchSize,
+          before: lastMessageId
+        });
 
-      if (messages.size === 0) break;
+        if (messages.size === 0) break;
 
-      // Filter out messages older than 14 days (Discord limitation)
-      const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
-      const deletableMessages = messages.filter(msg => msg.createdTimestamp > twoWeeksAgo);
-
-      if (deletableMessages.size === 0) {
-        await ctx.interaction.editReply(
-          `Could only delete ${totalDeleted} messages. Remaining messages are older than 14 days and cannot be bulk deleted.`
+        // Filter messages that can be deleted (not older than 14 days)
+        const deletableMessages = messages.filter(msg => 
+          msg.createdTimestamp > twoWeeksAgo && msg.id !== ctx.interaction.id
         );
-        return;
-      }
 
-      if (deletableMessages.size === 1) {
-        await deletableMessages.first()?.delete();
-        totalDeleted += 1;
-      } else {
-        await ctx.interaction.channel.bulkDelete(deletableMessages);
-        totalDeleted += deletableMessages.size;
-      }
+        if (deletableMessages.size === 0) break;
 
-      remainingToDelete -= deletableMessages.size;
+        // Update lastMessageId for next iteration
+        const messagesArray = Array.from(deletableMessages.values());
+        if (messagesArray.length > 0) {
+          lastMessageId = messagesArray[messagesArray.length - 1]!.id;
+        }
+
+        // Delete messages
+        if (deletableMessages.size === 1) {
+          await deletableMessages.first()?.delete();
+          totalDeleted += 1;
+        } else {
+          const deleted = await ctx.interaction.channel.bulkDelete(deletableMessages, true);
+          totalDeleted += deleted.size;
+        }
+
+        // Small delay to avoid rate limiting
+        if (totalDeleted < amount) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+      } catch (batchError) {
+        console.error('Batch deletion error:', batchError);
+        break;
+      }
     }
 
-    await ctx.interaction.editReply(`Successfully deleted ${totalDeleted} message(s)!`);
+    const response = totalDeleted > 0 
+      ? `Successfully deleted ${totalDeleted} message(s)!`
+      : 'No messages could be deleted (they might be too old or already deleted).';
+    
+    await ctx.interaction.editReply(response);
   } catch (error) {
     console.error('Purge command error:', error);
     await ctx.interaction.editReply('An error occurred while trying to delete messages.');
+  }
+};
+
+export const message: MessageCommand = async (ctx) => {
+  // Extract amount from message content (simple parsing)
+  const args = ctx.message.content.split(' ').slice(1);
+  const amount = parseInt(args[0] || '0');
+
+  if (!amount || amount < 1 || amount > 1000) {
+    await ctx.message.reply('Please provide a valid number between 1 and 1000.');
+    return;
+  }
+
+  if (!ctx.message.inGuild()) {
+    await ctx.message.reply('This command can only be used in a server!');
+    return;
+  }
+
+  // Check if the user has permission to manage messages
+  const member = ctx.message.member;
+  if (!member?.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+    await ctx.message.reply('You need the "Manage Messages" permission to use this command!');
+    return;
+  }
+
+  // Check if the bot has permission to manage messages
+  const botMember = await ctx.message.guild.members.fetchMe();
+  if (!ctx.message.channel.permissionsFor(botMember)?.has(PermissionsBitField.Flags.ManageMessages)) {
+    await ctx.message.reply('I need the "Manage Messages" permission to purge messages!');
+    return;
+  }
+
+  try {
+    if (!ctx.message.channel.isTextBased()) {
+      await ctx.message.reply('This command can only be used in text channels!');
+      return;
+    }
+
+    let totalDeleted = 0;
+    let lastMessageId = ctx.message.id;
+    const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
+
+    // Delete messages in batches
+    while (totalDeleted < amount) {
+      const batchSize = Math.min(amount - totalDeleted, 100);
+      
+      try {
+        const messages = await ctx.message.channel.messages.fetch({ 
+          limit: batchSize,
+          before: lastMessageId
+        });
+
+        if (messages.size === 0) break;
+
+        // Filter messages that can be deleted (not older than 14 days)
+        const deletableMessages = messages.filter(msg => 
+          msg.createdTimestamp > twoWeeksAgo && msg.id !== ctx.message.id
+        );
+
+        if (deletableMessages.size === 0) break;
+
+        // Update lastMessageId for next iteration
+        const messagesArray = Array.from(deletableMessages.values());
+        if (messagesArray.length > 0) {
+          lastMessageId = messagesArray[messagesArray.length - 1]!.id;
+        }
+
+        // Delete messages
+        if (deletableMessages.size === 1) {
+          await deletableMessages.first()?.delete();
+          totalDeleted += 1;
+        } else {
+          const deleted = await ctx.message.channel.bulkDelete(deletableMessages, true);
+          totalDeleted += deleted.size;
+        }
+
+        // Small delay to avoid rate limiting
+        if (totalDeleted < amount) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+      } catch (batchError) {
+        console.error('Message batch deletion error:', batchError);
+        break;
+      }
+    }
+
+    const response = totalDeleted > 0 
+      ? `Successfully deleted ${totalDeleted} message(s)!`
+      : 'No messages could be deleted (they might be too old or already deleted).';
+    
+    await ctx.message.reply(response);
+  } catch (error) {
+    console.error('Message purge command error:', error);
+    await ctx.message.reply('An error occurred while trying to delete messages.');
   }
 };
 
@@ -123,56 +233,69 @@ export const ai: AiCommand<typeof aiConfig> = async (ctx) => {
       error: 'I need the "Manage Messages" permission to purge messages',
     };
   }
-
   const { amount } = ctx.ai.params;
-
+  
   try {
     if (!ctx.message.channel.isTextBased()) {
       return {
         error: 'Purge command can only be used in text channels',
       };
-    }
+    }    let totalDeleted = 0;
+    let lastMessageId: string | undefined;
+    const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
 
     // Delete messages in batches
-    let totalDeleted = 0;
-    let remainingToDelete = amount;
+    while (totalDeleted < amount) {
+      const batchSize = Math.min(amount - totalDeleted, 100);
+        try {        const messages = await ctx.message.channel.messages.fetch({ 
+          limit: batchSize,
+          before: lastMessageId
+        });
 
-    while (remainingToDelete > 0 && totalDeleted < amount) {
-      const batchSize = Math.min(remainingToDelete, 100);
-      
-      const messages = await ctx.message.channel.messages.fetch({ 
-        limit: batchSize,
-        before: ctx.message.id // Don't delete the AI trigger message
-      });
+        if (messages.size === 0) break;
 
-      if (messages.size === 0) break;
+        // Filter messages that can be deleted (not older than 14 days and not the AI trigger message)
+        const deletableMessages = messages.filter(msg => 
+          msg.createdTimestamp > twoWeeksAgo && msg.id !== ctx.message.id
+        );
 
-      // Filter out messages older than 14 days (Discord limitation)
-      const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
-      const deletableMessages = messages.filter(msg => msg.createdTimestamp > twoWeeksAgo);
+        if (deletableMessages.size === 0) break;
 
-      if (deletableMessages.size === 0) {
-        return {
-          content: `Could only delete ${totalDeleted} messages. Remaining messages are older than 14 days and cannot be bulk deleted.`,
-        };
-      }
+        // Update lastMessageId for next iteration
+        const messagesArray = Array.from(deletableMessages.values());
+        if (messagesArray.length > 0) {
+          lastMessageId = messagesArray[messagesArray.length - 1]!.id;
+        }        // Delete messages
+        if (deletableMessages.size === 1) {
+          await deletableMessages.first()?.delete();
+          totalDeleted += 1;
+        } else {
+          const deleted = await ctx.message.channel.bulkDelete(deletableMessages, true);
+          totalDeleted += deleted.size;
+        }
 
-      if (deletableMessages.size === 1) {
-        await deletableMessages.first()?.delete();
-        totalDeleted += 1;
-      } else {
-        await ctx.message.channel.bulkDelete(deletableMessages);
-        totalDeleted += deletableMessages.size;
-      }
+        // Small delay to avoid rate limiting
+        if (totalDeleted < amount) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
 
-      remainingToDelete -= deletableMessages.size;
+      } catch (batchError) {
+        console.error('AI batch deletion error:', batchError);
+        break;      }
     }
 
-    return {
-      content: `Successfully deleted ${totalDeleted} message(s)!`,
-    };
+    if (totalDeleted > 0) {
+      return {
+        success: true,
+        message: `Successfully deleted ${totalDeleted} message(s)!`,
+      };
+    } else {
+      return {
+        error: 'No messages could be deleted (they might be too old or already deleted).',
+      };
+    }
   } catch (error) {
-    console.error('AI Purge command error:', error);
+    console.error('AI purge command error:', error);
     return {
       error: 'An error occurred while trying to delete messages',
     };
