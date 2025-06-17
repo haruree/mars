@@ -61,7 +61,6 @@ export const ai: AiCommand<typeof aiConfig> = async (ctx) => {
       error: 'Channel management can only be used in a server',
     };
   }
-
   // Check if the USER has permission to manage channels
   const userHasPermission = ctx.message.channel
     .permissionsFor(ctx.message.author)
@@ -69,7 +68,7 @@ export const ai: AiCommand<typeof aiConfig> = async (ctx) => {
 
   if (!userHasPermission) {
     return {
-      error: 'You do not have permission to manage channels',
+      error: 'Eep! You don\'t have permission to manage channels, s-sorry! >.<',
     };
   }
 

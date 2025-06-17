@@ -101,15 +101,13 @@ export const ai: AiCommand<typeof aiConfig> = async (ctx) => {
       error: 'Poll can only be created in a server',
     };
   }
-
   // Check if the USER has permission to manage messages
   const userHasPermission = ctx.message.channel
     .permissionsFor(ctx.message.author)
     ?.has(PermissionsBitField.Flags.ManageMessages);
-
   if (!userHasPermission) {
     return {
-      error: 'You do not have permission to create polls',
+      error: 'Eep! S-sorry, but you need \'Manage Messages\' permission to create polls! >.<',
     };
   }
 
@@ -117,24 +115,31 @@ export const ai: AiCommand<typeof aiConfig> = async (ctx) => {
   const botHasPermission = ctx.message.channel
     .permissionsFor(ctx.message.client.user!)
     ?.has(PermissionsBitField.Flags.SendMessages);
-
   if (!botHasPermission) {
     return {
-      error: 'Bot does not have the permission to send polls in this channel',
+      error: 'Eep! I need permission to send messages to create polls in this channel! >.<',
+    };
+  }  const { question, answers, allow_multiselect, duration } = ctx.ai.params;
+
+  try {
+    await ctx.message.channel.send({
+      poll: {
+        allowMultiselect: !!allow_multiselect,
+        answers: answers.map((answer) => ({
+          text: answer.text,
+          emoji: answer.emoji,
+        })),
+        duration: duration ?? 24,
+        question: { text: question.text },
+      },
+    });
+
+    return {
+      content: `I-I created the poll for you! ^^`,
+    };
+  } catch (error) {
+    return {
+      error: 'Eep! Something went wrong creating the poll, sorry! >.<',
     };
   }
-
-  const { question, answers, allow_multiselect, duration } = ctx.ai.params;
-
-  await ctx.message.channel.send({
-    poll: {
-      allowMultiselect: !!allow_multiselect,
-      answers: answers.map((answer) => ({
-        text: answer.text,
-        emoji: answer.emoji,
-      })),
-      duration: duration ?? 24,
-      question: { text: question.text },
-    },
-  });
 };
