@@ -11,6 +11,7 @@ import { z } from 'zod';
 export const command: CommandData = {
   name: 'channel',
   description: 'Manage channels in the server',
+  default_member_permissions: PermissionsBitField.Flags.ManageChannels.toString(),
 };
 
 const channelConfig = z.object({
@@ -61,14 +62,26 @@ export const ai: AiCommand<typeof aiConfig> = async (ctx) => {
     };
   }
 
-  const hasPermission = ctx.message.channel
+  // Check if the USER has permission to manage channels
+  const userHasPermission = ctx.message.channel
+    .permissionsFor(ctx.message.author)
+    ?.has(PermissionsBitField.Flags.ManageChannels);
+
+  if (!userHasPermission) {
+    return {
+      error: 'You do not have permission to manage channels',
+    };
+  }
+
+  // Check if the BOT has permission to manage channels
+  const botHasPermission = ctx.message.channel
     .permissionsFor(ctx.message.client.user!)
     ?.has([
       PermissionsBitField.Flags.ManageChannels,
       PermissionsBitField.Flags.ViewChannel,
     ]);
 
-  if (!hasPermission) {
+  if (!botHasPermission) {
     return {
       error: 'Bot does not have the required permissions to manage channels',
     };

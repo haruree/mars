@@ -6,6 +6,7 @@ import { z } from 'zod';
 export const command: CommandData = {
   name: 'poll',
   description: 'Create a poll',
+  default_member_permissions: PermissionsBitField.Flags.ManageMessages.toString(),
   options: [
     {
       name: 'question',
@@ -101,11 +102,23 @@ export const ai: AiCommand<typeof aiConfig> = async (ctx) => {
     };
   }
 
-  const hasPermission = ctx.message.channel
+  // Check if the USER has permission to manage messages
+  const userHasPermission = ctx.message.channel
+    .permissionsFor(ctx.message.author)
+    ?.has(PermissionsBitField.Flags.ManageMessages);
+
+  if (!userHasPermission) {
+    return {
+      error: 'You do not have permission to create polls',
+    };
+  }
+
+  // Check if the BOT has permission to send messages
+  const botHasPermission = ctx.message.channel
     .permissionsFor(ctx.message.client.user!)
     ?.has(PermissionsBitField.Flags.SendMessages);
 
-  if (!hasPermission) {
+  if (!botHasPermission) {
     return {
       error: 'Bot does not have the permission to send polls in this channel',
     };
