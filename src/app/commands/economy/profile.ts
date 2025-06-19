@@ -107,13 +107,12 @@ function formatProfile(user: any, userStats: any, isOwnProfile: boolean) {
   if (!isOwnProfile && user.displayAvatarURL) {
     embed.setThumbnail(user.displayAvatarURL());
   }
-  
-  // Currency & Daily Stats
+    // Currency & Daily Stats
   embed.addFields({
     name: '💰 💎 Wealth & Dedication',
     value: [
-      `💰 **Dream Dust** ✧ ${userStats.dream_dust.toLocaleString()}`,
-      `🔥 **Daily Streak** ✧ ${userStats.daily_streak} days`,
+      `💰 **Dream Dust** ✧ \`${userStats.dream_dust.toLocaleString()}\``,
+      `🔥 **Daily Streak** ✧ \`${userStats.daily_streak}\` days`,
       ''
     ].join('\n'),
     inline: true
@@ -123,9 +122,9 @@ function formatProfile(user: any, userStats: any, isOwnProfile: boolean) {
   embed.addFields({
     name: '📦 ✨ Collection Overview',
     value: [
-      `📦 **Total Items** ✧ ${userStats.totalItems}`,
+      `📦 **Total Items** ✧ \`${userStats.totalItems}\``,
       `📅 **Journey Started** ✧ ${joinDate}`,
-      `⏰ **Days Active** ✧ ${daysSinceJoin} days`,
+      `⏰ **Days Active** ✧ \`${daysSinceJoin}\` days`,
       ''
     ].join('\n'),
     inline: true
@@ -148,14 +147,13 @@ function formatProfile(user: any, userStats: any, isOwnProfile: boolean) {
       common: '🤍'
     };
     
-    const rarityOrder = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
-    const rarityText = rarityOrder
+    const rarityOrder = ['legendary', 'epic', 'rare', 'uncommon', 'common'];    const rarityText = rarityOrder
       .filter(rarity => userStats.rarityCount[rarity] > 0)
       .map(rarity => {
         const count = userStats.rarityCount[rarity];
         const emoji = rarityEmojis[rarity as keyof typeof rarityEmojis];
         const capitalizedRarity = rarity.charAt(0).toUpperCase() + rarity.slice(1);
-        return `${emoji} **${capitalizedRarity}** ✧ ${count}`;
+        return `${emoji} **${capitalizedRarity}** ✧ \`${count}\``;
       })
       .join('\n');
     
@@ -171,13 +169,12 @@ function formatProfile(user: any, userStats: any, isOwnProfile: boolean) {
       inline: true
     });
   }
-  
-  // Trading & Shopping Activity
+    // Trading & Shopping Activity
   const tradingText = [
-    `🛍️ **Purchases** ✧ ${userStats.stats.purchases || 0}`,
-    `💰 **Sales** ✧ ${userStats.stats.sales || 0}`,
-    `🎁 **Gifts Sent** ✧ ${userStats.stats.gifts_sent || 0}`,
-    `💝 **Gifts Received** ✧ ${userStats.stats.gifts_received || 0}`
+    `🛍️ **Purchases** ✧ \`${userStats.stats.purchases || 0}\``,
+    `💰 **Sales** ✧ \`${userStats.stats.sales || 0}\``,
+    `🎁 **Gifts Sent** ✧ \`${userStats.stats.gifts_sent || 0}\``,
+    `💝 **Gifts Received** ✧ \`${userStats.stats.gifts_received || 0}\``
   ].join('\n');
   
   embed.addFields({
@@ -185,11 +182,10 @@ function formatProfile(user: any, userStats: any, isOwnProfile: boolean) {
     value: tradingText,
     inline: true
   });
-  
-  // Adventure Activity
+    // Adventure Activity
   const adventureText = [
-    `🍄 **Foraging Trips** ✧ ${userStats.stats.forages || 0}`,
-    `📅 **Daily Rewards** ✧ ${userStats.stats.daily_claims || 0}`,
+    `🍄 **Foraging Trips** ✧ \`${userStats.stats.forages || 0}\``,
+    `📅 **Daily Rewards** ✧ \`${userStats.stats.daily_claims || 0}\``,
     '',
     `*${isOwnProfile ? 'Keep exploring!' : 'What an adventurer!'} ^^*`
   ].join('\n');

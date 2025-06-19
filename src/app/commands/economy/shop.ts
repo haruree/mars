@@ -38,13 +38,12 @@ function formatShop(items: any[]) {
     cats[category].push(item);
     return cats;
   }, {} as Record<string, any[]>);
-  
-  const categoryEmojis = {
-    cozy: '🛏️💤',
-    decorative: '✨🌸',
-    consumable: '🧪💊',
-    tools: '🔧⚒️',
-    misc: '📦🎁'
+    const categoryEmojis = {
+    cozy: '🛏️',
+    decorative: '✨',
+    consumable: '🧪',
+    tools: '🔧',
+    misc: '📦'
   };
   
   const categoryNames = {
@@ -65,26 +64,18 @@ function formatShop(items: any[]) {
     const categoryName = categoryNames[category as keyof typeof categoryNames] || category.toUpperCase();
     
     let categoryText = '';
-    
-    for (const item of categoryItems as any[]) {
+      for (const item of categoryItems as any[]) {
       const itemEmoji = item.emoji || '🌸';
       const rarityEmojis = {
         legendary: '🌟',
-        epic: '�',
-        rare: '�',
-        uncommon: '�',
+        epic: '💜',
+        rare: '💙',
+        uncommon: '💚',
         common: '🤍'
       };
       const rarityEmoji = rarityEmojis[item.rarity as keyof typeof rarityEmojis] || '🤍';
-      const capitalizedRarity = item.rarity ? item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1) : 'Common';
       
-      categoryText += `${itemEmoji} **${item.name}** ${rarityEmoji}\n`;
-      categoryText += `💰 **${item.price.toLocaleString()}** Dream Dust ✧ *${capitalizedRarity}*\n`;
-      
-      if (item.description) {
-        categoryText += `*${item.description}*\n`;
-      }
-      categoryText += '\n';
+      categoryText += `${itemEmoji} **${item.name}** • \`${item.price.toLocaleString()}\` Dream Dust\n`;
     }
     
     embed.addFields({
@@ -93,11 +84,10 @@ function formatShop(items: any[]) {
       inline: false
     });
   }
-  
-  // Add helpful footer
+    // Add helpful footer
   embed.addFields({
-    name: '💡 ✨ How to Purchase',
-    value: '```\n/buy <item name>\n```\n*Example: `/buy Cozy Blanket`*\n\n💰 Check your balance with `/balance`\n🎒 View your collection with `/inventory`',
+    name: '💡 How to Purchase',
+    value: 'Use `/buy <item name>` to purchase items\n💰 Check balance: `/balance` • 🎒 View items: `/inventory`',
     inline: false
   });
   
@@ -126,7 +116,7 @@ export const chatInput: ChatInputCommand = async (ctx) => {
   }
 
   try {
-    const items = await getShopItems(guildId);
+    const items = await getShopItems();
     const response = formatShop(items);
     
     await ctx.interaction.reply(response);
@@ -146,7 +136,7 @@ export const message: MessageCommand = async (ctx) => {
   }
 
   try {
-    const items = await getShopItems(guildId);
+    const items = await getShopItems();
     const response = formatShop(items);
     
     await ctx.message.reply(response);
@@ -165,9 +155,8 @@ export const ai: AiCommand<typeof aiConfig> = async (ctx) => {
       content: '❌ This command can only be used in a server!',
     };
   }
-
   try {
-    const items = await getShopItems(guildId);
+    const items = await getShopItems();
     
     // For AI commands, convert to plain text since embeds aren't supported
     if (items.length === 0) {

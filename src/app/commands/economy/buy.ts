@@ -42,7 +42,7 @@ export const aiConfig = {
 
 async function buyItem(userId: string, guildId: string, itemName: string, amount: number) {
   // Check if item exists in shop
-  const shopItem = await getShopItem(guildId, itemName);
+  const shopItem = await getShopItem(itemName);
   
   if (!shopItem) {
     return {
@@ -227,10 +227,9 @@ export const autocomplete = async (ctx: any) => {
 
   const focusedOption = ctx.interaction.options.getFocused(true);
   
-  if (focusedOption.name === 'item') {
-    try {
+  if (focusedOption.name === 'item') {    try {
       // Get shop items
-      const shopItems = await getShopItems(guildId);
+      const shopItems = await getShopItems();
       
       // Define rarity emojis
       const rarityEmojis = {

@@ -7,6 +7,49 @@ const pool = new Pool({
 
 export { pool };
 
+// Database initialization function
+export async function initializeDatabase(): Promise<void> {
+  try {
+    // Test database connection
+    await pool.query('SELECT NOW()');
+    console.log('✅ Database connection established');
+    
+    // Migrate to global shop
+    await migrateToGlobalShop();
+    
+    console.log('✅ Database initialization complete');
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    throw error;
+  }
+}
+
+// Migration function to convert guild-specific shops to global shop
+export async function migrateToGlobalShop(): Promise<void> {
+  try {
+    // Clean up any non-global shop items first
+    const cleanupQuery = 'DELETE FROM shop_items WHERE guild_id != $1';
+    const cleanupResult = await pool.query(cleanupQuery, ['global']);
+    if (cleanupResult.rowCount && cleanupResult.rowCount > 0) {
+      console.log(`🧹 Cleaned up ${cleanupResult.rowCount} old guild-specific shop items`);
+    }
+    
+    // Check if global shop already exists
+    const globalShopQuery = 'SELECT COUNT(*) as count FROM shop_items WHERE guild_id = $1';
+    const globalShopResult = await pool.query(globalShopQuery, ['global']);
+    const globalItemCount = parseInt(globalShopResult.rows[0]?.count || '0');
+    
+    if (globalItemCount === 0) {
+      console.log('🔄 Creating global shop...');
+      // Ensure global shop items exist
+      await ensureShopItems();
+    }
+    
+  } catch (error) {
+    console.error('❌ Shop migration failed:', error);
+  }
+}
+
 // Helper function to ensure guild context
 export function requireGuild(guildId: string | null): string {
   if (!guildId) {
@@ -97,39 +140,36 @@ export async function removeItemFromInventory(userId: string, guildId: string, i
 }
 
 // Shop functions
-export async function ensureShopItems(guildId: string): Promise<void> {
-  // Check if this guild already has shop items
+export async function ensureShopItems(): Promise<void> {
+  // Check if global shop items exist (not guild-specific)
   const existingQuery = 'SELECT COUNT(*) as count FROM shop_items WHERE guild_id = $1';
-  const existingResult = await pool.query(existingQuery, [guildId]);
+  const existingResult = await pool.query(existingQuery, ['global']);
   const itemCount = parseInt(existingResult.rows[0]?.count || '0');
   
   if (itemCount === 0) {
-    // Add default shop items for this guild
-    const defaultItems = [
-      { name: 'Healing Potion', price: 100, rarity: 'common', category: 'consumable', stock: -1 },
-      { name: 'Cozy Blanket', price: 150, rarity: 'common', category: 'cozy', stock: -1 },
-      { name: 'Flower Crown', price: 200, rarity: 'uncommon', category: 'decorative', stock: -1 },
-      { name: 'Plushie Bear', price: 300, rarity: 'uncommon', category: 'cozy', stock: -1 },
-      { name: 'Dream Catcher', price: 500, rarity: 'rare', category: 'decorative', stock: -1 },
-      { name: 'Starlight Lamp', price: 750, rarity: 'epic', category: 'decorative', stock: -1 },
-      { name: 'Moonbeam Crystal', price: 1000, rarity: 'epic', category: 'decorative', stock: -1 },
-      { name: 'Enchanted Rose', price: 1500, rarity: 'legendary', category: 'decorative', stock: -1 },
-    ];
+    // Get default shop items from items_catalog
+    const catalogQuery = `
+      SELECT name, sell_value * 2 as price, rarity, category 
+      FROM items_catalog 
+      WHERE category IN ('consumable', 'cozy', 'decorative')
+      ORDER BY rarity, name
+    `;
+    const catalogResult = await pool.query(catalogQuery);
     
-    for (const item of defaultItems) {
+    for (const item of catalogResult.rows) {
       const insertQuery = `
         INSERT INTO shop_items (guild_id, name, price, rarity, category, stock)
         VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (name, guild_id) DO NOTHING
       `;
-      await pool.query(insertQuery, [guildId, item.name, item.price, item.rarity, item.category, item.stock]);
+      await pool.query(insertQuery, ['global', item.name, item.price, item.rarity, item.category, -1]);
     }
   }
 }
 
-export async function getShopItems(guildId: string) {
-  // Ensure this guild has shop items
-  await ensureShopItems(guildId);
+export async function getShopItems() {
+  // Ensure global shop items exist
+  await ensureShopItems();
   
   const query = `
     SELECT s.name, s.price, s.description, s.rarity, s.category, ic.emoji
@@ -138,15 +178,15 @@ export async function getShopItems(guildId: string) {
     WHERE s.guild_id = $1
     AND (s.available_until IS NULL OR s.available_until > NOW())
     AND (s.stock > 0 OR s.stock = -1)
-    ORDER BY s.rarity, s.price
+    ORDER BY s.price DESC
   `;
-  const result = await pool.query(query, [guildId]);
+  const result = await pool.query(query, ['global']);
   return result.rows;
 }
 
-export async function getShopItem(guildId: string, itemName: string) {
-  // Ensure this guild has shop items
-  await ensureShopItems(guildId);
+export async function getShopItem(itemName: string) {
+  // Ensure global shop items exist
+  await ensureShopItems();
   
   const query = `
     SELECT s.name, s.price, s.description, s.rarity, s.category, s.stock, ic.emoji
@@ -156,7 +196,7 @@ export async function getShopItem(guildId: string, itemName: string) {
     AND (s.available_until IS NULL OR s.available_until > NOW())
     AND (s.stock > 0 OR s.stock = -1)
   `;
-  const result = await pool.query(query, [guildId, itemName]);
+  const result = await pool.query(query, ['global', itemName]);
   return result.rows[0] || null;
 }
 
@@ -224,4 +264,80 @@ export async function logTransaction(userId: string, guildId: string, type: stri
     VALUES ($1, $2, $3, $4, $5, $6)
   `;
   await pool.query(query, [userId, guildId, type, amount, itemName, description]);
+}
+
+// Database cleanup and maintenance functions
+export async function cleanupOldTransactions(daysOld: number = 90): Promise<void> {
+  const query = `
+    DELETE FROM transactions 
+    WHERE created_at < NOW() - INTERVAL '${daysOld} days'
+  `;
+  const result = await pool.query(query);
+  console.log(`🧹 Cleaned up ${result.rowCount} old transactions`);
+}
+
+export async function getDatabaseStats(): Promise<any> {
+  const queries = [
+    { name: 'Total Users', query: 'SELECT COUNT(*) as count FROM users' },
+    { name: 'Total Items in Circulation', query: 'SELECT SUM(amount) as count FROM inventory' },
+    { name: 'Total Transactions', query: 'SELECT COUNT(*) as count FROM transactions' },
+    { name: 'Active Guilds', query: 'SELECT COUNT(DISTINCT guild_id) as count FROM users' },
+  ];
+
+  const stats: Record<string, number> = {};
+  
+  for (const { name, query } of queries) {
+    try {
+      const result = await pool.query(query);
+      stats[name] = parseInt(result.rows[0]?.count || '0');
+    } catch (error) {
+      console.error(`Error getting stat ${name}:`, error);
+      stats[name] = 0;
+    }
+  }
+  
+  return stats;
+}
+
+// Leaderboard functions
+export async function getLeaderboard(guildId: string, limit: number = 10) {
+  const query = `
+    SELECT id, dream_dust, daily_streak
+    FROM users 
+    WHERE guild_id = $1 AND dream_dust > 0
+    ORDER BY dream_dust DESC 
+    LIMIT $2
+  `;
+  const result = await pool.query(query, [guildId, limit]);
+  return result.rows;
+}
+
+export async function getUserRank(userId: string, guildId: string): Promise<{ rank: number; dream_dust: number; total_users: number } | null> {
+  // Get user's position in the leaderboard
+  const rankQuery = `
+    WITH ranked_users AS (
+      SELECT id, dream_dust, 
+             ROW_NUMBER() OVER (ORDER BY dream_dust DESC) as rank
+      FROM users 
+      WHERE guild_id = $1 AND dream_dust > 0
+    ),
+    total_count AS (
+      SELECT COUNT(*) as total FROM users WHERE guild_id = $1 AND dream_dust > 0
+    )
+    SELECT ru.rank, ru.dream_dust, tc.total as total_users
+    FROM ranked_users ru, total_count tc
+    WHERE ru.id = $2
+  `;
+  const result = await pool.query(rankQuery, [guildId, userId]);
+  return result.rows[0] || null;
+}
+
+// Graceful shutdown
+export async function closeDatabase(): Promise<void> {
+  try {
+    await pool.end();
+    console.log('✅ Database connection closed gracefully');
+  } catch (error) {
+    console.error('❌ Error closing database connection:', error);
+  }
 }
