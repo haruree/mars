@@ -24,41 +24,6 @@ export async function initializeDatabase(): Promise<void> {
   }
 }
 
-// Guild settings functions
-export async function getGuildPrefix(guildId: string): Promise<string> {
-  // Create the guild settings if they don't exist
-  await ensureGuildSettings(guildId);
-  
-  // Get the prefix
-  const query = 'SELECT prefix FROM guild_settings WHERE guild_id = $1';
-  const result = await pool.query(query, [guildId]);
-  
-  // Return the prefix or the default if not found
-  return result.rows[0]?.prefix || ',';
-}
-
-export async function setGuildPrefix(guildId: string, prefix: string): Promise<void> {
-  // Ensure guild settings exist
-  await ensureGuildSettings(guildId);
-  
-  // Update the prefix
-  const query = `
-    UPDATE guild_settings 
-    SET prefix = $1, updated_at = NOW() 
-    WHERE guild_id = $2
-  `;
-  await pool.query(query, [prefix, guildId]);
-}
-
-export async function ensureGuildSettings(guildId: string): Promise<void> {
-  const query = `
-    INSERT INTO guild_settings (guild_id) 
-    VALUES ($1) 
-    ON CONFLICT (guild_id) DO NOTHING
-  `;
-  await pool.query(query, [guildId]);
-}
-
 // Migration function to convert guild-specific shops to global shop
 export async function migrateToGlobalShop(): Promise<void> {
   try {
