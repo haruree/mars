@@ -141,9 +141,9 @@ function formatProfile(user: any, userStats: any, isOwnProfile: boolean) {
   if (Object.keys(userStats.rarityCount).length > 0) {
     const rarityEmojis = {
       legendary: '🌟',
-      epic: '�',
-      rare: '�',
-      uncommon: '�',
+      epic: '💜',
+      rare: '♦️',
+      uncommon: '🍀',
       common: '🤍'
     };
     
@@ -178,7 +178,7 @@ function formatProfile(user: any, userStats: any, isOwnProfile: boolean) {
   ].join('\n');
   
   embed.addFields({
-    name: '🤝 � Trading & Gifting',
+    name: '🤝 🛒 Trading & Gifting',
     value: tradingText,
     inline: true
   });
