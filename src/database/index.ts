@@ -14,16 +14,6 @@ export async function initializeDatabase(): Promise<void> {
     await pool.query('SELECT NOW()');
     console.log('✅ Database connection established');
     
-    // Create guild settings table if it doesn't exist
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS guild_settings (
-        guild_id TEXT PRIMARY KEY,
-        prefix TEXT DEFAULT ',',
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-    
     // Migrate to global shop
     await migrateToGlobalShop();
     
