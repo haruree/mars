@@ -106,7 +106,7 @@ export const chatInput: ChatInputCommand = async (ctx) => {
           embed = new EmbedBuilder()
             .setColor('#87CEEB')
             .setTitle('🔧 Utility Commands')
-            .setDescription('*U-um... these are some helpful utility commands... (◕‿◕)*\n\n`/ping`\n`/weather <location>`\n`/poll <question> <options...>`')
+            .setDescription('*U-um... these are some helpful utility commands... (◕‿◕)*\n\n`/ping`\n`/weather <location>`\n`/poll <question> <options...>`\n`/setprefix <prefix>`')
             .setFooter({ text: 'Type `/help <command>` for more info on a command! ✨' });
           break;        case 'moderation':
           embed = new EmbedBuilder()

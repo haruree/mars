@@ -14,6 +14,16 @@ export async function initializeDatabase(): Promise<void> {
     await pool.query('SELECT NOW()');
     console.log('✅ Database connection established');
     
+    // Create guild settings table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS guild_settings (
+        guild_id TEXT PRIMARY KEY,
+        prefix TEXT DEFAULT ',',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    
     // Migrate to global shop
     await migrateToGlobalShop();
     
@@ -22,6 +32,41 @@ export async function initializeDatabase(): Promise<void> {
     console.error('❌ Database initialization failed:', error);
     throw error;
   }
+}
+
+// Guild settings functions
+export async function getGuildPrefix(guildId: string): Promise<string> {
+  // Create the guild settings if they don't exist
+  await ensureGuildSettings(guildId);
+  
+  // Get the prefix
+  const query = 'SELECT prefix FROM guild_settings WHERE guild_id = $1';
+  const result = await pool.query(query, [guildId]);
+  
+  // Return the prefix or the default if not found
+  return result.rows[0]?.prefix || ',';
+}
+
+export async function setGuildPrefix(guildId: string, prefix: string): Promise<void> {
+  // Ensure guild settings exist
+  await ensureGuildSettings(guildId);
+  
+  // Update the prefix
+  const query = `
+    UPDATE guild_settings 
+    SET prefix = $1, updated_at = NOW() 
+    WHERE guild_id = $2
+  `;
+  await pool.query(query, [prefix, guildId]);
+}
+
+export async function ensureGuildSettings(guildId: string): Promise<void> {
+  const query = `
+    INSERT INTO guild_settings (guild_id) 
+    VALUES ($1) 
+    ON CONFLICT (guild_id) DO NOTHING
+  `;
+  await pool.query(query, [guildId]);
 }
 
 // Migration function to convert guild-specific shops to global shop
