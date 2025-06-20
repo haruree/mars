@@ -41,6 +41,12 @@ export const chatInput: ChatInputCommand = async (ctx) => {
           value: 'moderation'
         },
         {
+          label: 'roleplay',
+          description: 'Interact with other members',
+          emoji: '🎭',
+          value: 'roleplay'
+        },
+        {
           label: 'fun',
           description: 'Fun and entertainment commands',
           emoji: '🎉',
@@ -108,7 +114,15 @@ export const chatInput: ChatInputCommand = async (ctx) => {
             .setTitle('🛡️ Moderation Commands')
             .setDescription('*T-these are for server moderators... please use them responsibly... (｡•́︿•̀｡)*\n\n`/purge <amount> [user]`\n`/channel <action> [options]`')
             .setFooter({ text: 'These commands require proper permissions! ⚠️' });
-          break;        case 'fun':
+          break;
+        case 'roleplay':
+          embed = new EmbedBuilder()
+            .setColor('#DA70D6')
+            .setTitle('🎭 Roleplay Commands')
+            .setDescription('*I-interact with other members... it\'s fun! (⁄ ⁄>⁄ ω ⁄<⁄ ⁄)*\n\n`/hug <user>`\n`/kiss <user>`\n`/pat <user>`\n`/poke <user>`\n`/slap <user>`\n`/bite <user>`\n`/boop <user>`\n`/cuddle <user>`\n`/highfive <user>`\n`/handholding <user>`\n`/tickle <user>`\n`/wave <user>`\n`/bully <user>`\n`/snuggle <user>`\n`/greet <user>`\n`/punch <user>`\n`/lick <user>`\n`/nom <user>`\n`/stare <user>`\n`/hold <user>`\n`/pats <user>`')
+            .setFooter({ text: 'All roleplay commands include cute anime GIFs! ✨' });
+          break;
+        case 'fun':
           embed = new EmbedBuilder()
             .setColor('#98FB98')
             .setTitle('🎉 Fun Commands')
