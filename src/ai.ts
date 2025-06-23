@@ -6,7 +6,7 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_API_KEY,
 });
 
-const model = google.languageModel('gemini-2.0-flash');
+const model = google.languageModel('gemini-2.5-flash');
 
 configureAI({  async selectAiModel() {
     return {
